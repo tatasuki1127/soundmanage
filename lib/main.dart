@@ -158,110 +158,260 @@ class _SoundMixerHomePageState extends State<SoundMixerHomePage> with WidgetsBin
               _isWebViewReady = true;
             });
             
-            // 🎯 Ultra Think Solution: Spotify保護型YouTube制御システム
+            // 🚀 Ultra Think: Web Audio API Complete Hijack System
             _webViewController.runJavaScript('''
               try {
-                console.log('🎵 Initializing Spotify-protective YouTube system...');
+                console.log('🎵 Initializing Web Audio API Complete Hijack for Spotify coexistence...');
                 
-                // 🛡️ Spotify保護のための音声フォーカス制御
-                function preventSpotifyInterruption() {
+                // 🎛️ グローバル音声制御システム
+                window.spotifyProtectiveAudioSystem = {
+                  audioContext: null,
+                  masterGainNode: null,
+                  isInitialized: false,
+                  hijackedVideos: new Map(),
                   
-                  // YouTube動画の音声フォーカス要求を無効化
-                  var originalRequestAudioFocus = window.AudioContext ? window.AudioContext.prototype.resume : null;
-                  if (originalRequestAudioFocus) {
-                    window.AudioContext.prototype.resume = function() {
-                      console.log('🚫 Blocking AudioContext.resume() to protect Spotify');
-                      return Promise.resolve();
-                    };
+                  // Web Audio API初期化
+                  initAudioSystem: function() {
+                    if (this.isInitialized) return;
+                    
+                    try {
+                      // AudioContextを効果音レベルで作成
+                      this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
+                        latencyHint: 'interactive', // 低遅延設定
+                        sampleRate: 44100
+                      });
+                      
+                      // マスター音量制御ノード（Spotify配慮型）
+                      this.masterGainNode = this.audioContext.createGain();
+                      this.masterGainNode.gain.value = 0.25; // 25%でSpotifyと共存
+                      this.masterGainNode.connect(this.audioContext.destination);
+                      
+                      console.log('✅ Web Audio System initialized for Spotify coexistence');
+                      this.isInitialized = true;
+                      
+                      // AudioContextを「ユーザージェスチャー」なしで開始
+                      this.audioContext.resume().then(() => {
+                        console.log('🎵 AudioContext started in background-friendly mode');
+                      }).catch(err => {
+                        console.log('⚠️ AudioContext resume pending user interaction');
+                      });
+                      
+                    } catch (e) {
+                      console.log('❌ Web Audio System init failed:', e);
+                    }
+                  },
+                  
+                  // 🎯 ビデオ音声の完全乗っ取り
+                  hijackVideoAudio: function(video, videoIndex) {
+                    if (this.hijackedVideos.has(video)) {
+                      console.log('🔄 Video already hijacked, skipping...', videoIndex);
+                      return;
+                    }
+                    
+                    try {
+                      console.log('🚀 Hijacking video audio stream...', videoIndex);
+                      
+                      // 1. 元のビデオ音声を無効化
+                      video.muted = true;
+                      
+                      // 2. MediaStream取得と音声トラック処理
+                      if (video.captureStream) {
+                        const stream = video.captureStream();
+                        const audioTracks = stream.getAudioTracks();
+                        
+                        if (audioTracks.length > 0) {
+                          console.log('🎤 Audio tracks found:', audioTracks.length);
+                          
+                          // 3. Web Audio APIで音声ストリームを制御
+                          const mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
+                          
+                          // 4. Spotify配慮型音量制御
+                          const videoGainNode = this.audioContext.createGain();
+                          videoGainNode.gain.value = 0.3; // 30%音量でSpotifyと調和
+                          
+                          // 5. 動的音量調整（Spotify保護）
+                          const dynamicController = this.audioContext.createGain();
+                          dynamicController.gain.value = 1.0;
+                          
+                          // 6. 音声ルーティング: Video → Gain → Master → Output
+                          mediaStreamSource.connect(videoGainNode);
+                          videoGainNode.connect(dynamicController);
+                          dynamicController.connect(this.masterGainNode);
+                          
+                          // 7. 乗っ取り完了記録
+                          this.hijackedVideos.set(video, {
+                            source: mediaStreamSource,
+                            gainNode: videoGainNode,
+                            dynamicController: dynamicController,
+                            stream: stream
+                          });
+                          
+                          console.log('✅ Video audio successfully hijacked and routed through Web Audio', videoIndex);
+                          
+                          // 8. Spotify保護のための音量監視
+                          this.startSpotifyProtectiveMonitoring(video, videoGainNode);
+                          
+                        } else {
+                          console.log('⚠️ No audio tracks found in video stream', videoIndex);
+                        }
+                      } else {
+                        console.log('⚠️ captureStream not supported, fallback mode...', videoIndex);
+                        this.fallbackAudioControl(video, videoIndex);
+                      }
+                      
+                    } catch (e) {
+                      console.log('❌ Video audio hijack failed:', e, 'videoIndex:', videoIndex);
+                      this.fallbackAudioControl(video, videoIndex);
+                    }
+                  },
+                  
+                  // 🛡️ Spotify保護監視システム
+                  startSpotifyProtectiveMonitoring: function(video, gainNode) {
+                    // リアルタイム音量調整でSpotifyを保護
+                    const monitoringInterval = setInterval(() => {
+                      if (video.ended || video.error) {
+                        clearInterval(monitoringInterval);
+                        return;
+                      }
+                      
+                      // 動画の再生状態に応じてSpotify配慮調整
+                      if (!video.paused && !video.muted) {
+                        // アクティブ再生中: より控えめに
+                        gainNode.gain.exponentialRampToValueAtTime(0.2, this.audioContext.currentTime + 0.1);
+                      } else {
+                        // 一時停止中: 少し音量復帰
+                        gainNode.gain.exponentialRampToValueAtTime(0.3, this.audioContext.currentTime + 0.1);
+                      }
+                    }, 500);
+                  },
+                  
+                  // 🔄 フォールバック音声制御
+                  fallbackAudioControl: function(video, videoIndex) {
+                    console.log('🔄 Using fallback audio control for video', videoIndex);
+                    
+                    // 元のビデオ音量をSpotify配慮レベルに固定
+                    video.muted = false;
+                    video.volume = 0.2; // 20%でSpotifyと共存
+                    
+                    // 音量変更イベントを監視してSpotify保護
+                    video.addEventListener('volumechange', () => {
+                      if (video.volume > 0.25) {
+                        video.volume = 0.2;
+                        console.log('🛡️ Video volume capped for Spotify protection');
+                      }
+                    });
                   }
+                };
+                
+                // 🎯 Enhanced Video Detection & Hijacking
+                function setupSpotifyCoexistentVideo() {
+                  const videos = document.querySelectorAll('video');
                   
-                  // Media Session APIの音声フォーカス要求を制御
+                  videos.forEach((video, index) => {
+                    console.log('🎬 Processing video element', index);
+                    
+                    // Web Audio System初期化
+                    window.spotifyProtectiveAudioSystem.initAudioSystem();
+                    
+                    // loadstart: 音声乗っ取り準備
+                    video.addEventListener('loadstart', () => {
+                      console.log('📡 Video loadstart - preparing audio hijack...', index);
+                      setTimeout(() => {
+                        window.spotifyProtectiveAudioSystem.hijackVideoAudio(video, index);
+                      }, 100);
+                    });
+                    
+                    // canplay: 音声乗っ取り実行
+                    video.addEventListener('canplay', () => {
+                      console.log('🎵 Video canplay - executing audio hijack...', index);
+                      window.spotifyProtectiveAudioSystem.hijackVideoAudio(video, index);
+                    });
+                    
+                    // play: Spotify共存モード開始
+                    video.addEventListener('play', () => {
+                      console.log('▶️ Video play - Spotify coexistence mode active...', index);
+                      
+                      // AudioContextの確実な開始
+                      if (window.spotifyProtectiveAudioSystem.audioContext && 
+                          window.spotifyProtectiveAudioSystem.audioContext.state === 'suspended') {
+                        window.spotifyProtectiveAudioSystem.audioContext.resume();
+                      }
+                      
+                      // 音声乗っ取りの再確認
+                      setTimeout(() => {
+                        window.spotifyProtectiveAudioSystem.hijackVideoAudio(video, index);
+                      }, 50);
+                    });
+                    
+                    // 既に読み込み済みの場合は即座に処理
+                    if (video.readyState >= 1) {
+                      console.log('🚀 Video already loaded, immediate hijack...', index);
+                      window.spotifyProtectiveAudioSystem.hijackVideoAudio(video, index);
+                    }
+                  });
+                }
+                
+                // 🎵 Global Audio Focus Protection
+                function preventSystemAudioFocus() {
+                  // AudioContextの作成を制御してSpotify保護
+                  const originalAudioContext = window.AudioContext || window.webkitAudioContext;
+                  
+                  window.AudioContext = window.webkitAudioContext = function(...args) {
+                    console.log('🚫 Intercepting AudioContext creation for Spotify protection');
+                    const ctx = new originalAudioContext(...args);
+                    
+                    // 新しいAudioContextは低音量で開始
+                    const gainNode = ctx.createGain();
+                    gainNode.gain.value = 0.2;
+                    gainNode.connect(ctx.destination);
+                    
+                    return ctx;
+                  };
+                  
+                  // MediaSession API無効化
                   if ('mediaSession' in navigator) {
-                    console.log('🎵 Configuring MediaSession to coexist with Spotify');
                     navigator.mediaSession.metadata = null;
                     navigator.mediaSession.setActionHandler('play', null);
                     navigator.mediaSession.setActionHandler('pause', null);
+                    navigator.mediaSession.setActionHandler('seekbackward', null);
+                    navigator.mediaSession.setActionHandler('seekforward', null);
                   }
                 }
                 
-                // 🔄 Spotify継続保証付き動画管理
-                function setupSpotifyProtectedVideo() {
-                  var videos = document.querySelectorAll('video');
-                  videos.forEach(function(video, index) {
-                    
-                    // 動画再生前の予防処理
-                    video.addEventListener('loadstart', function(e) {
-                      console.log('🎬 Video loading - protecting Spotify...', index);
-                      preventSpotifyInterruption();
-                    });
-                    
-                    // 再生開始時の音声フォーカス制御
-                    video.addEventListener('play', function(e) {
-                      console.log('▶️ Video play event - maintaining Spotify coexistence...', index);
-                      
-                      // 音量を控えめに設定（Spotifyを尊重）
-                      if (video.volume > 0.8) {
-                        video.volume = 0.7;
-                        console.log('🔊 Video volume adjusted to respect Spotify');
-                      }
-                      
-                      // 音声フォーカス要求の抑制
-                      preventSpotifyInterruption();
-                    });
-                    
-                    // Spotify保護型一時停止処理
-                    video.addEventListener('pause', function(e) {
-                      console.log('⏸️ Video paused, maintaining Spotify priority...', index);
-                      setTimeout(function() {
-                        if (video.paused && !video.ended) {
-                          console.log('🔄 Auto-resuming video (Spotify-safe)...', index);
-                          video.play().catch(function(err) {
-                            console.log('Auto-resume failed (Spotify protected):', err);
-                          });
+                // 🚀 システム初期化
+                preventSystemAudioFocus();
+                setupSpotifyCoexistentVideo();
+                
+                // DOM変更監視でリアルタイム対応
+                const observer = new MutationObserver((mutations) => {
+                  mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                      if (node.nodeType === 1) { // Element node
+                        const videos = node.querySelectorAll ? node.querySelectorAll('video') : [];
+                        if (videos.length > 0) {
+                          console.log('🔍 New videos detected, applying Spotify protection...');
+                          setTimeout(() => {
+                            setupSpotifyCoexistentVideo();
+                          }, 100);
                         }
-                      }, 300); // 短縮してSpotify復旧を優先
-                    });
-                    
-                    // 音声無効化の防止（Spotify配慮型）
-                    video.addEventListener('volumechange', function(e) {
-                      if (video.muted) {
-                        console.log('🔊 Video was muted, unmuting (Spotify-aware)...', index);
-                        video.muted = false;
                       }
                     });
                   });
-                }
-                
-                // 🎵 Spotify保護機能の初期化
-                preventSpotifyInterruption();
-                setupSpotifyProtectedVideo();
-                
-                // DOM変更時の継続保護
-                var observer = new MutationObserver(function(mutations) {
-                  console.log('🔍 DOM changed, re-establishing Spotify protection...');
-                  preventSpotifyInterruption();
-                  setupSpotifyProtectedVideo();
                 });
+                
                 observer.observe(document.body, { childList: true, subtree: true });
                 
-                // ユーザーインタラクション時のSpotify配慮
-                document.addEventListener('click', function(e) {
-                  console.log('👆 User interaction detected, ensuring Spotify coexistence...');
-                  preventSpotifyInterruption();
-                  
-                  var videos = document.querySelectorAll('video');
-                  videos.forEach(function(video) {
-                    video.muted = false;
-                    // 音量をSpotify配慮レベルに調整
-                    if (video.volume > 0.8) video.volume = 0.7;
-                  });
-                });
+                // ユーザーインタラクション時の音声システム活性化
+                document.addEventListener('click', () => {
+                  if (window.spotifyProtectiveAudioSystem.audioContext) {
+                    window.spotifyProtectiveAudioSystem.audioContext.resume();
+                  }
+                }, { once: true });
                 
-                // 🎉 Spotify保護システム完了
-                console.log('✅ Spotify-protective YouTube system initialized');
+                console.log('🎉 Web Audio API Complete Hijack System ready for Spotify coexistence');
                 
               } catch (e) {
-                console.log('❌ Spotify protection setup error:', e);
+                console.log('❌ Web Audio API Hijack setup error:', e);
               }
             ''');
           },
