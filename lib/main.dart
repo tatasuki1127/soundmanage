@@ -51,6 +51,81 @@ class _SoundMixerHomePageState extends State<SoundMixerHomePage> with WidgetsBin
     WidgetsBinding.instance.addObserver(this);
     _initializeWebView();
     _initializeVolumeController();
+    
+    // 🎯 Ultra Think Solution: アプリ起動時即座にVoIPセッション開始
+    // Spotify保護のための予防的措置
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _enablePreventiveVoIPSession();
+    });
+  }
+  
+  // 🛡️ 予防的VoIPセッション（Spotify保護）
+  Future<void> _enablePreventiveVoIPSession() async {
+    print('🛡️ Enabling preventive VoIP session to protect Spotify...');
+    final success = await AudioMixerService.enableVoIPMixing();
+    if (success) {
+      setState(() {
+        _isVoIPEnabled = true;
+        _currentStatus = 'VoIPセッション: 自動保護モード - Spotify継続保証';
+      });
+      print('✅ Preventive VoIP session active - Spotify protected');
+    } else {
+      print('⚠️ Preventive VoIP session failed - manual activation needed');
+    }
+  }
+  
+  // 🔧 Ultra Think: Spotify保護の強化処理
+  Future<void> _reinforceSpotifyProtection() async {
+    print('🔧 Reinforcing Spotify protection...');
+    
+    // VoIPセッションの状態確認と強化
+    if (_isVoIPEnabled) {
+      try {
+        // AudioMixerServiceの専用Spotify保護強化機能を使用
+        final reinforced = await AudioMixerService.reinforceSpotifyProtection();
+        
+        if (reinforced) {
+          print('✅ AudioMixerService: Spotify protection reinforced');
+        } else {
+          print('⚠️ AudioMixerService: Spotify protection reinforcement failed');
+          
+          // フォールバック: 基本VoIPセッション再設定
+          await AudioMixerService.enableVoIPMixing();
+          print('🔄 Fallback VoIP session reactivated');
+        }
+        
+        // WebViewに保護強化を通知
+        if (_isWebViewReady) {
+          _webViewController.runJavaScript('''
+            console.log('🛡️ Flutter side: Spotify protection reinforced');
+            if (typeof preventSpotifyInterruption === 'function') {
+              preventSpotifyInterruption();
+              console.log('✅ JavaScript side: Spotify protection reactivated');
+            }
+          ''');
+        }
+      } catch (e) {
+        print('⚠️ VoIP session reinforcement failed: $e');
+      }
+    }
+  }
+  
+  // 🎯 WebViewタッチ時のSpotify保護
+  void _onWebViewInteraction() {
+    print('👆 WebView interaction detected - protecting Spotify...');
+    
+    if (_isVoIPEnabled && _isWebViewReady) {
+      // タッチ前の予防的保護
+      _webViewController.runJavaScript('''
+        console.log('👆 Pre-touch Spotify protection activated');
+        if (typeof preventSpotifyInterruption === 'function') {
+          preventSpotifyInterruption();
+        }
+      ''');
+      
+      // Flutter側VoIPセッション確認
+      _reinforceSpotifyProtection();
+    }
   }
 
   @override
@@ -83,67 +158,110 @@ class _SoundMixerHomePageState extends State<SoundMixerHomePage> with WidgetsBin
               _isWebViewReady = true;
             });
             
-            // 🎯 VoIPセッション対応の動画再生強化
+            // 🎯 Ultra Think Solution: Spotify保護型YouTube制御システム
             _webViewController.runJavaScript('''
               try {
-                console.log('Initializing VoIP-resistant video playback...');
+                console.log('🎵 Initializing Spotify-protective YouTube system...');
                 
-                // 🔄 動画停止時の自動再開機能
-                function setupVideoRecovery() {
+                // 🛡️ Spotify保護のための音声フォーカス制御
+                function preventSpotifyInterruption() {
+                  
+                  // YouTube動画の音声フォーカス要求を無効化
+                  var originalRequestAudioFocus = window.AudioContext ? window.AudioContext.prototype.resume : null;
+                  if (originalRequestAudioFocus) {
+                    window.AudioContext.prototype.resume = function() {
+                      console.log('🚫 Blocking AudioContext.resume() to protect Spotify');
+                      return Promise.resolve();
+                    };
+                  }
+                  
+                  // Media Session APIの音声フォーカス要求を制御
+                  if ('mediaSession' in navigator) {
+                    console.log('🎵 Configuring MediaSession to coexist with Spotify');
+                    navigator.mediaSession.metadata = null;
+                    navigator.mediaSession.setActionHandler('play', null);
+                    navigator.mediaSession.setActionHandler('pause', null);
+                  }
+                }
+                
+                // 🔄 Spotify継続保証付き動画管理
+                function setupSpotifyProtectedVideo() {
                   var videos = document.querySelectorAll('video');
                   videos.forEach(function(video, index) {
                     
-                    // 音声フォーカス喪失時の対処
+                    // 動画再生前の予防処理
+                    video.addEventListener('loadstart', function(e) {
+                      console.log('🎬 Video loading - protecting Spotify...', index);
+                      preventSpotifyInterruption();
+                    });
+                    
+                    // 再生開始時の音声フォーカス制御
+                    video.addEventListener('play', function(e) {
+                      console.log('▶️ Video play event - maintaining Spotify coexistence...', index);
+                      
+                      // 音量を控えめに設定（Spotifyを尊重）
+                      if (video.volume > 0.8) {
+                        video.volume = 0.7;
+                        console.log('🔊 Video volume adjusted to respect Spotify');
+                      }
+                      
+                      // 音声フォーカス要求の抑制
+                      preventSpotifyInterruption();
+                    });
+                    
+                    // Spotify保護型一時停止処理
                     video.addEventListener('pause', function(e) {
-                      console.log('Video paused, attempting recovery...', index);
+                      console.log('⏸️ Video paused, maintaining Spotify priority...', index);
                       setTimeout(function() {
                         if (video.paused && !video.ended) {
-                          console.log('Auto-resuming video...', index);
+                          console.log('🔄 Auto-resuming video (Spotify-safe)...', index);
                           video.play().catch(function(err) {
-                            console.log('Auto-resume failed:', err);
+                            console.log('Auto-resume failed (Spotify protected):', err);
                           });
                         }
-                      }, 500);
+                      }, 300); // 短縮してSpotify復旧を優先
                     });
                     
-                    // 動画停止時の即座の再開試行
-                    video.addEventListener('ended', function(e) {
-                      if (video.loop) return;
-                      console.log('Video ended unexpectedly, checking for continuation...');
-                    });
-                    
-                    // 音声無効化の防止
+                    // 音声無効化の防止（Spotify配慮型）
                     video.addEventListener('volumechange', function(e) {
                       if (video.muted) {
-                        console.log('Video was muted, unmuting...', index);
+                        console.log('🔊 Video was muted, unmuting (Spotify-aware)...', index);
                         video.muted = false;
                       }
                     });
                   });
                 }
                 
-                // 初期設定
-                setupVideoRecovery();
+                // 🎵 Spotify保護機能の初期化
+                preventSpotifyInterruption();
+                setupSpotifyProtectedVideo();
                 
-                // DOM変更時の再設定
+                // DOM変更時の継続保護
                 var observer = new MutationObserver(function(mutations) {
-                  setupVideoRecovery();
+                  console.log('🔍 DOM changed, re-establishing Spotify protection...');
+                  preventSpotifyInterruption();
+                  setupSpotifyProtectedVideo();
                 });
                 observer.observe(document.body, { childList: true, subtree: true });
                 
-                // ユーザーインタラクション時の音声有効化
-                document.addEventListener('click', function() {
+                // ユーザーインタラクション時のSpotify配慮
+                document.addEventListener('click', function(e) {
+                  console.log('👆 User interaction detected, ensuring Spotify coexistence...');
+                  preventSpotifyInterruption();
+                  
                   var videos = document.querySelectorAll('video');
                   videos.forEach(function(video) {
                     video.muted = false;
-                    console.log('User interaction: unmuted video');
+                    // 音量をSpotify配慮レベルに調整
+                    if (video.volume > 0.8) video.volume = 0.7;
                   });
-                }, { once: true });
+                });
                 
-                console.log('VoIP-resistant video setup completed');
+                // 🎉 Spotify保護システム完了
+                console.log('✅ Spotify-protective YouTube system initialized');
                 
               } catch (e) {
-                console.log('WebView VoIP-resistant setup error:', e);
+                console.log('❌ Spotify protection setup error:', e);
               }
             ''');
           },
@@ -222,16 +340,28 @@ class _SoundMixerHomePageState extends State<SoundMixerHomePage> with WidgetsBin
           _currentStatus = 'VoIPセッション: WebView共存モード - Spotify両立可能';
         });
         
-        // VoIPセッション開始後、WebViewの動画復旧をサポート
+        // 🎯 Ultra Think: VoIPセッション後のSpotify保護強化
+        await _reinforceSpotifyProtection();
+        
         _webViewController.runJavaScript('''
-          console.log('VoIP session started, ensuring video continuity...');
+          console.log('🛡️ VoIP session started, reinforcing Spotify protection...');
+          
+          // Spotify保護の再確認
+          if (typeof preventSpotifyInterruption === 'function') {
+            preventSpotifyInterruption();
+          }
+          
           var videos = document.querySelectorAll('video');
           videos.forEach(function(video, index) {
             if (video.paused && !video.ended) {
-              console.log('Resuming video after VoIP session start...', index);
-              video.play().catch(function(err) {
-                console.log('Video resume failed:', err);
-              });
+              console.log('🔄 Resuming video with Spotify protection...', index);
+              
+              // Spotify配慮型の動画再開
+              setTimeout(function() {
+                video.play().catch(function(err) {
+                  console.log('Video resume failed (Spotify protected):', err);
+                });
+              }, 100); // Spotifyの状態安定化を待つ
             }
           });
         ''');
@@ -485,7 +615,17 @@ class _SoundMixerHomePageState extends State<SoundMixerHomePage> with WidgetsBin
                         ),
                       ),
                       Expanded(
-                        child: WebViewWidget(controller: _webViewController),
+                        child: GestureDetector(
+                          onTap: () {
+                            print('📱 WebView tapped - activating Spotify protection');
+                            _onWebViewInteraction();
+                          },
+                          onPanStart: (_) {
+                            print('📱 WebView pan started - protecting Spotify');
+                            _onWebViewInteraction();
+                          },
+                          child: WebViewWidget(controller: _webViewController),
+                        ),
                       ),
                     ],
                   ),

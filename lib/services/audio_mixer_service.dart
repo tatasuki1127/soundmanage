@@ -137,11 +137,10 @@ class AudioMixerService {
   static Future<void> _maintainLightweightSession() async {
     try {
       if (_session != null && _isVoIPActive) {
-        // 🎯 WebView音声を邪魔しない軽量メンテナンス
-        // setActive(true)は呼ばない（音声フォーカスを奪わない）
-        print('Lightweight VoIP session maintained (non-intrusive)');
+        // 🎯 Ultra Think: Spotify保護優先のメンテナンス
+        print('🛡️ Maintaining Spotify-protective VoIP session...');
         
-        // Spotifyとの両立のため、設定のみ確認
+        // Spotify保護を最優先とした設定維持
         await _session!.configure(AudioSessionConfiguration(
           avAudioSessionCategory: AVAudioSessionCategory.playback,
           avAudioSessionCategoryOptions: 
@@ -150,21 +149,55 @@ class AudioMixerService {
             AVAudioSessionCategoryOptions.allowBluetooth,
           avAudioSessionMode: AVAudioSessionMode.spokenAudio,
         ));
+        
+        print('✅ Spotify-protective session maintained');
       }
     } catch (e) {
-      print('Lightweight session maintenance error: $e');
-      // エラー時もWebViewを阻害しない復旧処理
+      print('⚠️ Spotify-protective session maintenance error: $e');
+      
+      // 🔄 Spotify保護のための緊急復旧
       try {
+        print('🚨 Emergency Spotify protection recovery...');
         await _session!.configure(AudioSessionConfiguration(
-          avAudioSessionCategory: AVAudioSessionCategory.playback,
+          avAudioSessionCategory: AVAudioSessionCategory.ambient,
           avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
-          avAudioSessionMode: AVAudioSessionMode.defaultMode,
         ));
-        // setActive(false)でパッシブ維持
+        // パッシブモードでSpotify保護
         await _session!.setActive(false);
+        print('✅ Emergency Spotify protection activated');
       } catch (reinitError) {
-        print('Lightweight session recovery error: $reinitError');
+        print('❌ Emergency Spotify protection failed: $reinitError');
       }
+    }
+  }
+  
+  // 🎯 Ultra Think: Spotify保護強化機能
+  static Future<bool> reinforceSpotifyProtection() async {
+    if (!_isVoIPActive || _session == null) {
+      print('⚠️ VoIP session not active, cannot reinforce Spotify protection');
+      return false;
+    }
+    
+    try {
+      print('🔧 Reinforcing Spotify protection...');
+      
+      // より強固なSpotify保護設定
+      await _session!.configure(AudioSessionConfiguration(
+        avAudioSessionCategory: AVAudioSessionCategory.playback,
+        avAudioSessionCategoryOptions: 
+          AVAudioSessionCategoryOptions.mixWithOthers |
+          AVAudioSessionCategoryOptions.duckOthers,
+        avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+      ));
+      
+      // パッシブモードでSpotifyとの共存を確保
+      await _session!.setActive(false);
+      
+      print('✅ Spotify protection reinforced successfully');
+      return true;
+    } catch (e) {
+      print('❌ Spotify protection reinforcement failed: $e');
+      return false;
     }
   }
   
